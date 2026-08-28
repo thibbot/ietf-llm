@@ -620,7 +620,7 @@ def sync_mailing_list(
             verbose,
             level=LogLevel.STATUS,
         )
-        return sorted(existing_dumps)
+        return []
 
     combined: Dict[int, List[str]] = {}
     for list_name, uids in per_list_uids.items():
