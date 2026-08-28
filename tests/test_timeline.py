@@ -8,6 +8,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 import ietf_llm.net.http_metrics as http_metrics
 from ietf_llm.digest import timeline
 from ietf_llm.people import Registry
@@ -315,12 +317,13 @@ def test_meeting_label_handles_known_forms() -> None:
 
 
 def test_datatracker_workers_share_http_metrics(
-    isolated_home: Path, monkeypatch: Any,
+    isolated_home: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Timeline requests made in workers count toward the gather total."""
     http_metrics.reset()
 
-    def fetch(*args: Any, **kwargs: Any) -> list:
+    def fetch(*args: Any, **kwargs: Any) -> list[Any]:
         del args, kwargs
         http_metrics.record("https://datatracker.ietf.org/api/v1/", 200, 1)
         return []
@@ -330,6 +333,8 @@ def test_datatracker_workers_share_http_metrics(
     monkeypatch.setattr(timeline, "fetch_doc_events", fetch)
     monkeypatch.setattr(timeline, "fetch_ballots", fetch)
 
-    build_events("wg", str(isolated_home), Registry())
-
-    assert http_metrics.current().total == 4
+    try:
+        build_events("wg", str(isolated_home), Registry())
+        assert http_metrics.current().total == 4
+    finally:
+        http_metrics.reset()
