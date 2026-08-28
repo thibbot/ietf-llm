@@ -335,6 +335,6 @@ def test_datatracker_workers_share_http_metrics(
 
     try:
         build_events("wg", str(isolated_home), Registry())
-        assert http_metrics.current().total == 4
+        assert http_metrics.current().host_requests["datatracker.ietf.org"] == 4
     finally:
         http_metrics.reset()

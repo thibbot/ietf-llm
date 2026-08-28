@@ -36,7 +36,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from ..atomicio import atomic_open
 from ..gather.sources.ballots import _cutoff as _ballot_cutoff
@@ -438,9 +438,13 @@ def build_events(
         # unbounded: the per-host governor still caps what datatracker sees.
         parent = http_metrics.current()
 
-        def _bound(fn: Any, *args: Any, **kwargs: Any) -> Any:
+        def _bound(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+            previous = http_metrics.current()
             http_metrics.set_current(parent)
-            return fn(*args, **kwargs)
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                http_metrics.set_current(previous)
 
         with ThreadPoolExecutor(max_workers=4) as pool:
             f_group = pool.submit(_bound, fetch_group_events, wg, months, verbose)

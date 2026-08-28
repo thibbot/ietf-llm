@@ -612,8 +612,8 @@ def sync_mailing_list(
     # bytes back.
     # Keyed on new mail, not other staleness: narrowing --months keeps wider
     # dumps, re-adding a previously gathered list does not restore it, and a
-    # future rendering change does not rebuild existing dumps. New mail or
-    # manually removing raw/ triggers a rebuild.
+    # future rendering change does not rebuild existing dumps. These dumps are
+    # export-only; new mail or manually removing raw/ triggers a rebuild.
     existing_dumps = glob.glob(os.path.join(raw_dir(dest_folder), "mail-archive-*.txt"))
     if existing_dumps and _cached_eml_count(wg_name, list_names) == n_before:
         log(
